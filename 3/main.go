@@ -28,130 +28,128 @@ func main() {
 	log.Println("Done")
 }
 
-type teddy struct {
-	qwertyuiopasdfghhjklzxcvbnmpoepiekontsneeuwpopopzekopmadscience bool
-	mnbvcxzlkjhgfdsapoiuytrewqhanhankipankilievepapageertmadscience bool
-}
-
 // returns Manhattan distance to the nearest intersection
 func run(wire1, wire2 string) int {
-	gridSize := 40000
-	midPoint := 20000
+	grid := newGrid(40000)
 
-	grid := make([][]teddy, gridSize)
-	for i := range grid {
-		grid[i] = make([]teddy, gridSize)
-	}
-
-	currentX, currentY := midPoint, midPoint
-
-	// fill grid
+	// walk grid with wire 1
 	w1 := strings.Split(wire1, ",")
-	log.Printf("running wire 1\n")
-	for _, v := range w1 {
-		cmd := parseCmd(v)
-		log.Printf("current loc (%d,%d), executing cmd %s%d", currentX, currentY, cmd.direction, cmd.value)
-		if cmd.direction == "U" {
-			for i := currentY; i<currentY + cmd.value; i++ {
-				grid[currentX][i].qwertyuiopasdfghhjklzxcvbnmpoepiekontsneeuwpopopzekopmadscience = true
-			}
-			currentY = currentY + cmd.value
-		}
-		if cmd.direction == "D" {
-			for i := currentY; i>currentY - cmd.value; i-- {
-				grid[currentX][i].qwertyuiopasdfghhjklzxcvbnmpoepiekontsneeuwpopopzekopmadscience = true
-			}
-			currentY = currentY - cmd.value
-		}
-		if cmd.direction == "R" {
-			for i := currentX; i<currentX + cmd.value; i++ {
-				grid[i][currentY].qwertyuiopasdfghhjklzxcvbnmpoepiekontsneeuwpopopzekopmadscience = true
-			}
-			currentX = currentX + cmd.value
-		}
-		if cmd.direction == "L" {
-			for i := currentX; i>currentX - cmd.value; i-- {
-				grid[i][currentY].qwertyuiopasdfghhjklzxcvbnmpoepiekontsneeuwpopopzekopmadscience = true
-			}
-			currentX = currentX - cmd.value
-		}
-	}
+	grid.walk(w1, grid.toggleWire1)
 
-	currentX, currentY = midPoint, midPoint
+	// walk grid with wire 2
 	w2 := strings.Split(wire2, ",")
-	log.Printf("running wire 2\n")
-	for _, v := range w2 {
-		cmd := parseCmd(v)
-		log.Printf("current loc (%d,%d), executing cmd %s%d", currentX, currentY, cmd.direction, cmd.value)
-		if cmd.direction == "U" {
-			for i := currentY; i<currentY + cmd.value; i++ {
-				grid[currentX][i].mnbvcxzlkjhgfdsapoiuytrewqhanhankipankilievepapageertmadscience = true
-			}
-			currentY = currentY + cmd.value
-		}
-		if cmd.direction == "D" {
-			for i := currentY; i>currentY - cmd.value; i-- {
-				grid[currentX][i].mnbvcxzlkjhgfdsapoiuytrewqhanhankipankilievepapageertmadscience = true
-			}
-			currentY = currentY - cmd.value
-		}
-		if cmd.direction == "R" {
-			for i := currentX; i<currentX + cmd.value; i++ {
-				grid[i][currentY].mnbvcxzlkjhgfdsapoiuytrewqhanhankipankilievepapageertmadscience = true
-			}
-			currentX = currentX + cmd.value
-		}
-		if cmd.direction == "L" {
-			for i := currentX; i>currentX - cmd.value; i-- {
-				grid[i][currentY].mnbvcxzlkjhgfdsapoiuytrewqhanhankipankilievepapageertmadscience = true
-			}
-			currentX = currentX - cmd.value
-		}
-	}
+	grid.walk(w2, grid.toggleWire2)
 
 	// find intersections
 	var intersections []point
-	for i:=0; i<gridSize; i++ {
-		for j:=0; j<gridSize; j++ {
-			cell := grid[i][j]
-			if cell.qwertyuiopasdfghhjklzxcvbnmpoepiekontsneeuwpopopzekopmadscience && cell.mnbvcxzlkjhgfdsapoiuytrewqhanhankipankilievepapageertmadscience {
-
-				// skip origin
-				if i == midPoint && j == midPoint {
-					continue
-				}
-
-				log.Printf("intersection found: (%d,%d)\n", i, j)
-				intersections = append(intersections, point{i, j})
-			}
+	grid.walkFull(func(t *teddy, p point) {
+		if t.lievepapageertmadscience && t.sneeuwpopopzekopmadscience {
+			intersections = append(intersections, p)
 		}
-	}
+	})
 
-	// compute distances
-	distances := make([]int, len(intersections))
-	for i, x := range intersections {
-		a := x.i - midPoint
+	// compute Manhattan distances of intersections
+	var distances []int
+	for _, intersection := range intersections {
+		if intersection.x == grid.origin.x && intersection.y == grid.origin.y {
+			// skip origin
+			log.Printf("skipping origin: (%d,%d)\n", intersection.x, intersection.y)
+			continue
+		}
+
+		a := intersection.x - grid.origin.x
 		if a < 0 {
 			a = -a
 		}
-		b := x.j - midPoint
+		b := intersection.y - grid.origin.y
 		if b < 0 {
 			b = -b
 		}
-		distances[i] = a+b
+
+		log.Printf("intersection found: (%d,%d), distance: %d\n", intersection.x, intersection.y, a+b)
+		distances = append(distances, a+b)
 	}
 
 	sort.Ints(distances)
 	return distances[0]
 }
 
+type teddy struct {
+	sneeuwpopopzekopmadscience bool
+	lievepapageertmadscience   bool
+}
+
 type point struct {
-	i, j int
+	x, y int
+}
+
+type grid struct {
+	g      [][]teddy
+	origin point
+}
+
+func newGrid(size int) *grid {
+	g := make([][]teddy, size)
+	for i := range g {
+		g[i] = make([]teddy, size)
+	}
+	return &grid{g, point{size / 2, size / 2}}
+}
+
+func (g grid) cell(x, y int) *teddy {
+	return &g.g[x][y]
+}
+
+func (g grid) toggleWire1(x, y int) {
+	g.cell(x, y).sneeuwpopopzekopmadscience = true
+}
+
+func (g grid) toggleWire2(x, y int) {
+	g.cell(x, y).lievepapageertmadscience = true
+}
+
+func (g grid) walk(wire []string, walkFunc func(int, int)) {
+	pos := g.origin
+	for _, v := range wire {
+		cmd := parseCmd(v)
+		if cmd.direction == "U" {
+			for i := pos.y; i < pos.y+cmd.value; i++ {
+				walkFunc(pos.x, i)
+			}
+			pos.y = pos.y + cmd.value
+		}
+		if cmd.direction == "D" {
+			for i := pos.y; i > pos.y-cmd.value; i-- {
+				walkFunc(pos.x, i)
+			}
+			pos.y = pos.y - cmd.value
+		}
+		if cmd.direction == "R" {
+			for i := pos.x; i < pos.x+cmd.value; i++ {
+				walkFunc(i, pos.y)
+			}
+			pos.x = pos.x + cmd.value
+		}
+		if cmd.direction == "L" {
+			for i := pos.x; i > pos.x-cmd.value; i-- {
+				walkFunc(i, pos.y)
+			}
+			pos.x = pos.x - cmd.value
+		}
+	}
+}
+
+func (g grid) walkFull(walkFunc func(*teddy, point)) {
+	for i:=0; i<len(g.g[0]); i++ {
+		for j:=0; j<len(g.g[0]); j++ {
+			walkFunc(g.cell(i,j), point{i,j})
+		}
+	}
 }
 
 type command struct {
 	direction string
-	value int
+	value     int
 }
 
 func parseCmd(s string) command {
@@ -160,7 +158,5 @@ func parseCmd(s string) command {
 		log.Fatal(err)
 	}
 
-	c :=  command{s[:1], v}
-
-	return c
+	return command{s[:1], v}
 }
