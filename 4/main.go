@@ -16,7 +16,7 @@ func main() {
 		if isDecreasing(x) {
 			continue
 		}
-		if containsAdjacentEquals(x) {
+		if containsAdjacentEqualsAndNotMore(x) {
 			solutions = append(solutions, i)
 		}
 	}
@@ -50,6 +50,29 @@ func containsAdjacentEquals(number []int) bool {
 	for i := 0; i < len(number)-1; i++ {
 		if number[i] == number[i+1] {
 			return true
+		}
+	}
+	return false
+}
+
+func containsAdjacentEqualsAndNotMore(number []int) bool {
+	for i := 0; i < len(number)-1; i++ {
+		if number[i] == number[i+1] {
+			if i == 0 {
+				if number[i+2] != number[i+1] {
+					return true
+				}
+				continue
+			}
+			if i+1 == len(number)-1 {
+				if number[i-1] != number[i] {
+					return true
+				}
+				continue
+			}
+			if number[i-1] != number[i] && number[i+1] != number[i+2] {
+				return true
+			}
 		}
 	}
 	return false
