@@ -53,10 +53,10 @@ func run(i []int) []int {
 
 	index := 0
 
-	operand, modes := parseOperand(result[index])
-	for operand != 99 {
-		log.Printf("Executing %d, %v\n", operand, modes)
-		if operand == 1 || operand == 2 {
+	operator, modes := parseOperator(result[index])
+	for operator != 99 {
+		log.Printf("Executing %d, %v\n", operator, modes)
+		if operator == 1 || operator == 2 {
 			x, y := result[index+1], result[index+2]
 			resultLocation := result[index+3]
 
@@ -72,18 +72,18 @@ func run(i []int) []int {
 			}
 
 			// addition
-			if operand == 1 {
+			if operator == 1 {
 				result[resultLocation] = a + b
 			}
 			// multiplication
-			if operand == 2 {
+			if operator == 2 {
 				result[resultLocation] = a * b
 			}
 
 			index = index + 4
 		}
 		// input
-		if operand == 3 {
+		if operator == 3 {
 			resultLocation := result[index+1]
 
 			log.Printf("Give input\n")
@@ -102,19 +102,59 @@ func run(i []int) []int {
 			index = index + 2
 		}
 		// output
-		if operand == 4 {
+		if operator == 4 {
 			resultLocation := result[index+1]
 			log.Printf("OUTPUT: %d\n", result[resultLocation])
 			index = index + 2
 		}
+		// jump-if-true
+		if operator == 5 {
+			x, y := result[index+1], result[index+2]
 
-		operand, modes = parseOperand(result[index])
+			a := x
+			if modes[0] == 0 {
+				// position mode
+				a = result[x]
+			}
+
+			if a != 0 {
+				index = y
+				if modes[1] == 0 {
+					// position mode
+					index = result[y]
+				}
+			} else {
+				index = index + 3
+			}
+		}
+		// jump-if-false
+		if operator == 6 {
+			x, y := result[index+1], result[index+2]
+
+			a := x
+			if modes[0] == 0 {
+				// position mode
+				a = result[x]
+			}
+
+			if a == 0 {
+				index = y
+				if modes[1] == 0 {
+					// position mode
+					index = result[y]
+				}
+			} else {
+				index = index + 3
+			}
+		}
+
+		operator, modes = parseOperator(result[index])
 	}
 
 	return result
 }
 
-func parseOperand(i int) (int, []int) {
+func parseOperator(i int) (int, []int) {
 	operand := i % 100
 	modes := convertToReversedIntSlice(i/100, nil)
 
