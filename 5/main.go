@@ -11,7 +11,7 @@ import (
 func main() {
 	log.Println("Start")
 
-	f, err := os.Open("/Users/ggerritsen/dev/personal/advent-of-code-2019/5/sample_io.txt")
+	f, err := os.Open("/Users/ggerritsen/dev/personal/advent-of-code-2019/5/input.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,21 +53,33 @@ func run(i []int) []int {
 
 	index := 0
 
-	operand := result[index]
+	operand, modes := parseOperand(result[index])
 	for operand != 99 {
+		log.Printf("Executing %d, %v\n", operand, modes)
+		if operand == 1 || operand == 2 {
+			x, y := result[index+1], result[index+2]
+			resultLocation := result[index+3]
 
-		// addition
-		if operand == 1 {
-			x, y := result[index+1], result[index+2]
-			resultLocation := result[index+3]
-			result[resultLocation] = result[x] + result[y]
-			index = index + 4
-		}
-		// multiplication
-		if operand == 2 {
-			x, y := result[index+1], result[index+2]
-			resultLocation := result[index+3]
-			result[resultLocation] = result[x] * result[y]
+			a := x
+			if modes[0] == 0 {
+				// position mode
+				a = result[x]
+			}
+			b := y
+			if modes[1] == 0 {
+				// position mode
+				b = result[y]
+			}
+
+			// addition
+			if operand == 1 {
+				result[resultLocation] = a + b
+			}
+			// multiplication
+			if operand == 2 {
+				result[resultLocation] = a * b
+			}
+
 			index = index + 4
 		}
 		// input
@@ -78,6 +90,9 @@ func run(i []int) []int {
 			sc := bufio.NewScanner(os.Stdin)
 			sc.Scan()
 			input := sc.Text()
+			if err := sc.Err(); err != nil {
+				log.Fatal(err)
+			}
 			v, err := strconv.Atoi(input)
 			if err != nil {
 				log.Fatal(err)
@@ -93,8 +108,28 @@ func run(i []int) []int {
 			index = index + 2
 		}
 
-		operand = result[index]
+		operand, modes = parseOperand(result[index])
 	}
 
+	return result
+}
+
+func parseOperand(i int) (int, []int) {
+	operand := i % 100
+	modes := convertToReversedIntSlice(i/100, nil)
+
+	for i := len(modes); i < 3; i++ {
+		modes = append(modes, 0)
+	}
+
+	return operand, modes
+}
+
+func convertToReversedIntSlice(i int, result []int) []int {
+	for i > 0 {
+		j := i % 10
+		result = append(result, j)
+		return convertToReversedIntSlice(i/10, result)
+	}
 	return result
 }
