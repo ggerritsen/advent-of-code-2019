@@ -147,6 +147,54 @@ func run(i []int) []int {
 				index = index + 3
 			}
 		}
+		// less-than
+		if operator == 7 {
+			x, y := result[index+1], result[index+2]
+			resultLocation := result[index+3]
+
+			a := x
+			if modes[0] == 0 {
+				// position mode
+				a = result[x]
+			}
+			b := y
+			if modes[1] == 0 {
+				// position mode
+				b = result[y]
+			}
+
+			if a < b {
+				result[resultLocation] = 1
+			} else {
+				result[resultLocation] = 0
+			}
+
+			index = index + 4
+		}
+		// equals
+		if operator == 8 {
+			x, y := result[index+1], result[index+2]
+			resultLocation := result[index+3]
+
+			a := x
+			if modes[0] == 0 {
+				// position mode
+				a = result[x]
+			}
+			b := y
+			if modes[1] == 0 {
+				// position mode
+				b = result[y]
+			}
+
+			if a == b {
+				result[resultLocation] = 1
+			} else {
+				result[resultLocation] = 0
+			}
+
+			index = index + 4
+		}
 
 		operator, modes = parseOperator(result[index])
 	}
