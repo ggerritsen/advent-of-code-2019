@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 )
 
@@ -38,14 +39,26 @@ func main() {
 
 	log.Printf("Start part 1")
 
-	_, o := runIntcode(input, []int{3, 0})
-	log.Printf("Output: %d", o)
+	log.Printf("Max output: %d", findOptimalOutput(input))
 
 	log.Printf("End part 1")
 }
 
-func findOptimalPhases(opCodes []int) []int {
-	return []int{0}
+func findOptimalOutput(opCodes []int) int {
+	phases := []int{0, 1, 2, 3, 4}
+	permutations := generatePermutations(5, phases)
+
+	var outputs []int
+	for _, p := range permutations {
+		output := 0
+		for i := 0; i < 5; i++ {
+			_, output = runIntcode(opCodes, []int{p[i], output})
+		}
+		outputs = append(outputs, output)
+	}
+
+	sort.Ints(outputs)
+	return outputs[len(outputs)-1]
 }
 
 // source: https://en.wikipedia.org/wiki/Heap%27s_algorithm
@@ -147,7 +160,6 @@ func runIntcode(i []int, input []int) ([]int, int) {
 		if operator == 4 {
 			resultLocation := result[index+1]
 			output = result[resultLocation]
-			log.Printf("OUTPUT: %d\n", output)
 			index = index + 2
 		}
 		// jump-if-true
