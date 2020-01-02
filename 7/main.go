@@ -6,6 +6,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"sync"
 )
 
 func main() {
@@ -38,10 +39,225 @@ func main() {
 	}
 
 	log.Printf("Start part 1")
-
 	log.Printf("Max output: %d", findOptimalOutput(input))
-
 	log.Printf("End part 1")
+
+	log.Printf("Start part 2")
+	log.Printf("Max output with feedback loop: %d", findOptimalOutputWithFeedbackLoop(input))
+	log.Printf("End part 2")
+}
+
+func findOptimalOutputWithFeedbackLoop(opCodes []int) int {
+	phases := []int{5, 6, 7, 8, 9}
+	permutations := generatePermutations(5, phases)
+
+	maxOutput := 0
+	for _, p := range permutations {
+		pcs := make([]*intCodePC, 5)
+		for i := 0; i<5; i++ {
+			pcs[i] = newIntCodePC(p[i], opCodes)
+		}
+
+		pcs[1].in = pcs[0].out
+		pcs[2].in = pcs[1].out
+		pcs[3].in = pcs[2].out
+		pcs[4].in = pcs[3].out
+
+		var wg sync.WaitGroup
+		for i :=0; i<5; i++ {
+			wg.Add(1)
+			pc := pcs[i]
+			go func() {
+				defer func() {
+					wg.Done()
+				}()
+				pc.run()
+			}()
+		}
+
+		// start
+		pcs[0].in <- 0
+
+		// feed output of last amplifier back to first amplifier
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for o := range pcs[4].out {
+				if o > maxOutput {
+					maxOutput = o
+				}
+				pcs[0].in <- o
+			}
+		}()
+
+		wg.Wait()
+	}
+
+	return maxOutput
+}
+
+func newIntCodePC(phase int, opCodes []int) *intCodePC {
+	return &intCodePC{
+		opCodes: opCodes,
+		phase:   phase,
+		in:      make(chan int, 1),
+		out:     make(chan int, 1),
+	}
+}
+
+type intCodePC struct {
+	opCodes []int
+	phase   int
+	in, out chan int
+}
+
+func (pc *intCodePC) run() {
+	result := make([]int, len(pc.opCodes))
+	for j := 0; j < len(pc.opCodes); j++ {
+		result[j] = pc.opCodes[j]
+	}
+
+	index, inputCount := 0, 0
+	phaseInserted := false
+	operator, modes := parseOperator(result[index])
+	for operator != 99 {
+		if operator == 1 || operator == 2 {
+			x, y := result[index+1], result[index+2]
+			resultLocation := result[index+3]
+
+			a := x
+			if modes[0] == 0 {
+				// position mode
+				a = result[x]
+			}
+			b := y
+			if modes[1] == 0 {
+				// position mode
+				b = result[y]
+			}
+
+			// addition
+			if operator == 1 {
+				result[resultLocation] = a + b
+			}
+			// multiplication
+			if operator == 2 {
+				result[resultLocation] = a * b
+			}
+
+			index = index + 4
+		}
+		// input
+		if operator == 3 {
+			resultLocation := result[index+1]
+			if phaseInserted {
+				result[resultLocation] = <-pc.in
+			} else {
+				result[resultLocation] = pc.phase
+				phaseInserted = true
+			}
+			index = index + 2
+			inputCount++
+		}
+		// output
+		if operator == 4 {
+			resultLocation := result[index+1]
+			pc.out <- result[resultLocation]
+			index = index + 2
+		}
+		// jump-if-true
+		if operator == 5 {
+			x, y := result[index+1], result[index+2]
+
+			a := x
+			if modes[0] == 0 {
+				// position mode
+				a = result[x]
+			}
+
+			if a != 0 {
+				index = y
+				if modes[1] == 0 {
+					// position mode
+					index = result[y]
+				}
+			} else {
+				index = index + 3
+			}
+		}
+		// jump-if-false
+		if operator == 6 {
+			x, y := result[index+1], result[index+2]
+
+			a := x
+			if modes[0] == 0 {
+				// position mode
+				a = result[x]
+			}
+
+			if a == 0 {
+				index = y
+				if modes[1] == 0 {
+					// position mode
+					index = result[y]
+				}
+			} else {
+				index = index + 3
+			}
+		}
+		// less-than
+		if operator == 7 {
+			x, y := result[index+1], result[index+2]
+			resultLocation := result[index+3]
+
+			a := x
+			if modes[0] == 0 {
+				// position mode
+				a = result[x]
+			}
+			b := y
+			if modes[1] == 0 {
+				// position mode
+				b = result[y]
+			}
+
+			if a < b {
+				result[resultLocation] = 1
+			} else {
+				result[resultLocation] = 0
+			}
+
+			index = index + 4
+		}
+		// equals
+		if operator == 8 {
+			x, y := result[index+1], result[index+2]
+			resultLocation := result[index+3]
+
+			a := x
+			if modes[0] == 0 {
+				// position mode
+				a = result[x]
+			}
+			b := y
+			if modes[1] == 0 {
+				// position mode
+				b = result[y]
+			}
+
+			if a == b {
+				result[resultLocation] = 1
+			} else {
+				result[resultLocation] = 0
+			}
+
+			index = index + 4
+		}
+
+		operator, modes = parseOperator(result[index])
+	}
+
+	close(pc.out)
 }
 
 func findOptimalOutput(opCodes []int) int {
