@@ -17,7 +17,7 @@ func Test_testBoost(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := runBoostWithInput(tt.opCodes); !reflect.DeepEqual(got, tt.want) {
+			if got := runBoostWithInput(tt.opCodes, 1); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("runBoostWithInput() = %v, want %v", got, tt.want)
 			}
 		})
