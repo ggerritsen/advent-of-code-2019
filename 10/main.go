@@ -1,16 +1,31 @@
 package main
 
 import (
+	"io/ioutil"
 	"log"
 	"math"
+	"os"
 	"strings"
 )
 
 func main() {
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	b, err := ioutil.ReadFile(dir+"/10/input.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("Start part 1")
+	p, i := findBestMonitoringLocation(string(b))
+	log.Printf("Best location %v (numAsteroids %d)", p, i)
+	log.Printf("End part 1")
 }
 
-func run(s string) (point, int) {
+func findBestMonitoringLocation(s string) (point, int) {
 	// parse s
 	rows := strings.Split(s, "\n")
 	coords := make([][]string, len(rows))

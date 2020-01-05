@@ -86,12 +86,12 @@ func Test_run(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotLocation, gotNumAsteroids := run(tt.input)
+			gotLocation, gotNumAsteroids := findBestMonitoringLocation(tt.input)
 			if !reflect.DeepEqual(gotLocation, tt.wantLocation) {
-				t.Errorf("run() location = %v, want %v", gotLocation, tt.wantLocation)
+				t.Errorf("findBestMonitoringLocation() location = %v, want %v", gotLocation, tt.wantLocation)
 			}
 			if gotNumAsteroids != tt.wantNumAsteroids {
-				t.Errorf("run() numAsteroids = %d, want %d", gotNumAsteroids, tt.wantNumAsteroids)
+				t.Errorf("findBestMonitoringLocation() numAsteroids = %d, want %d", gotNumAsteroids, tt.wantNumAsteroids)
 			}
 		})
 	}
