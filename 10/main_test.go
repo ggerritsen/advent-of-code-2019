@@ -9,26 +9,26 @@ func Test_run(t *testing.T) {
 	tests := []struct {
 		name             string
 		input            string
-		wantLocation     []int
+		wantLocation     point
 		wantNumAsteroids int
 	}{
-		{"1-dimension-x", `#.#.#`, []int{2, 0}, 2},
+		{"1-dimension-x", `#.#.#`, point{2, 0}, 2},
 		{"1-dimension-y",
 			`#
 			 .
 			#
 			.
-			#`, []int{0, 2}, 2},
+			#`, point{0, 2}, 2},
 		{"2-dimension",
 			`..#..
 				#.#.#
-				..#..`, []int{2, 1}, 4},
+				..#..`, point{2, 1}, 4},
 		{"simple",
 			`.#..#
 			.....
 			#####
 			....#
-			...##`, []int{3, 4}, 8},
+			...##`, point{3, 4}, 8},
 		{"extended-1",
 			`......#.#.
 			#..#.#....
@@ -39,7 +39,50 @@ func Test_run(t *testing.T) {
 			#..#....#.
 			.##.#..###
 			##...#..#.
-			.#....####`, []int{5, 8}, 33},
+			.#....####`, point{5, 8}, 33},
+		{"extended-2",
+			`#.#...#.#.
+			.###....#.
+			.#....#...
+			##.#.#.#.#
+			....#.#.#.
+			.##..###.#
+			..#...##..
+			..##....##
+			......#...
+			.####.###.`, point{1, 2}, 35},
+		{"extended-3",
+			`.#..#..###
+			####.###.#
+			....###.#.
+			..###.##.#
+			##.##.#.#.
+			....###..#
+			..#.#..#.#
+			#..#.#.###
+			.##...##.#
+			.....#.#..`, point{6, 3}, 41},
+		{"extended-4",
+			`.#..##.###...#######
+			##.############..##.
+			.#.######.########.#
+			.###.#######.####.#.
+			#####.##.#.##.###.##
+			..#####..#.#########
+			####################
+			#.####....###.#.#.##
+			##.#################
+			#####.##.###..####..
+			..######..##.#######
+			####.##.####...##..#
+			.#####..#.######.###
+			##...#.##########...
+			#.##########.#######
+			.####.#.###.###.#.##
+			....##.##.###..#####
+			.#.#.###########.###
+			#.#.#.#####.####.###
+			###.##.####.##.#..##`, point{11, 13}, 210},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -49,38 +92,6 @@ func Test_run(t *testing.T) {
 			}
 			if gotNumAsteroids != tt.wantNumAsteroids {
 				t.Errorf("run() numAsteroids = %d, want %d", gotNumAsteroids, tt.wantNumAsteroids)
-			}
-		})
-	}
-}
-
-func Test_firstBlockingAsteroid(t *testing.T) {
-	type args struct {
-		a      point
-		origin point
-		coords string
-	}
-	tests := []struct {
-		name string
-		args args
-		want point
-	}{{
-		// 9,7 should be blocked by 3,3
-		"edge case", args{point{9,7}, point{0,1}, `......#.#.
-			#..#.#....
-			..#######.
-			.#.#.###..
-			.#..#.....
-			..#....#.#
-			#..#....#.
-			.##.#..###
-			##...#..#.
-			.#....####`}, point{3,3}},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := firstBlockingAsteroid(tt.args.a, tt.args.origin, tt.args.coords); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("firstBlockingAsteroid() = %v, want %v", got, tt.want)
 			}
 		})
 	}
