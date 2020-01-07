@@ -96,3 +96,42 @@ func Test_run(t *testing.T) {
 		})
 	}
 }
+
+func Test_vaporize(t *testing.T) {
+	tests := []struct {
+		name               string
+		input              string
+		monitoringLocation point
+		wantAsteroid       point
+	}{
+		{"extended-4",
+			`.#..##.###...#######
+			##.############..##.
+			.#.######.########.#
+			.###.#######.####.#.
+			#####.##.#.##.###.##
+			..#####..#.#########
+			####################
+			#.####....###.#.#.##
+			##.#################
+			#####.##.###..####..
+			..######..##.#######
+			####.##.####...##..#
+			.#####..#.######.###
+			##...#.##########...
+			#.##########.#######
+			.####.#.###.###.#.##
+			....##.##.###..#####
+			.#.#.###########.###
+			#.#.#.#####.####.###
+			###.##.####.##.#..##`, point{11, 13}, point{8, 2}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			asteroids := vaporizeAsteroids(tt.input, tt.monitoringLocation)
+			if got, want := asteroids[199], tt.wantAsteroid; !reflect.DeepEqual(asteroids[199], tt.wantAsteroid) {
+				t.Errorf("vaporizeAsteroids() 200th asteroid = %v, want %v", got, want)
+			}
+		})
+	}
+}
