@@ -26,12 +26,12 @@ func main() {
 	log.Printf("End part 1")
 
 	log.Printf("Start part 2")
-	a := vaporizeAsteroids(string(b), point{29,28})
+	a := vaporizeAsteroids(string(b), point{29, 28})
 	log.Printf("200th asteroid to be vaporized: %v", a[199])
 	log.Printf("End part 2")
 }
 
-func vaporizeAsteroids(s string, monitoringLocation point) ([]point) {
+func vaporizeAsteroids(s string, monitoringLocation point) []point {
 	// parse
 	rows := strings.Split(s, "\n")
 	coords := make([][]string, len(rows))
@@ -66,13 +66,14 @@ func vaporizeAsteroids(s string, monitoringLocation point) ([]point) {
 		}
 	}
 
+	// sort angles
 	for _, v := range angles {
 		sort.Slice(v, func(i, j int) bool {
-			distanceI := (v[i].x-monitoringLocation.x) + (v[i].y-monitoringLocation.y)
+			distanceI := (v[i].x - monitoringLocation.x) + (v[i].y - monitoringLocation.y)
 			if distanceI < 0 {
 				distanceI = -distanceI
 			}
-			distanceJ := (v[j].x-monitoringLocation.x) + (v[j].y-monitoringLocation.y)
+			distanceJ := (v[j].x - monitoringLocation.x) + (v[j].y - monitoringLocation.y)
 			if distanceJ < 0 {
 				distanceJ = -distanceJ
 			}
@@ -92,8 +93,9 @@ func vaporizeAsteroids(s string, monitoringLocation point) ([]point) {
 	})
 	log.Printf("Angle idxs: %v", anglesIdx)
 
+	// find starting position
 	start := -1
-	for i := len(anglesIdx)-1; i>= 0; i-- {
+	for i := len(anglesIdx) - 1; i >= 0; i-- {
 		if anglesIdx[i] <= math.Pi/2 {
 			start = i
 			break
@@ -102,32 +104,25 @@ func vaporizeAsteroids(s string, monitoringLocation point) ([]point) {
 	log.Printf("start is %d: %v", start, anglesIdx[start])
 
 	var removedAsteroidsInOrder []point
-
-	// 1st pass (3/4 circle)
-	for i := start; i>= 0; i-- {
-		a := anglesIdx[i]
-		if curAngles, ok := angles[a]; ok {
-		log.Printf("ngle is %v", a)
-			log.Printf("curAngles is %v", curAngles)
-			removedAsteroidsInOrder = append(removedAsteroidsInOrder, curAngles[0])
-			//log.Printf("removed asteroids is %v", removedAsteroidsInOrder)
-			if len(curAngles) == 1 {
-				delete(angles, a)
-				continue
-			}
-			angles[a] = curAngles[1:] // remove first asteroid at this angle
-		}
-	}
-
-	// rest of the passes
 	for len(angles) > 0 {
-		for i := len(anglesIdx) - 1; i >= 0; i-- {
+		// 1st pass (3/4 circle)
+		for i := start; i < len(anglesIdx); i++ {
 			a := anglesIdx[i]
 			if curAngles, ok := angles[a]; ok {
-			log.Printf("ngle is %v", a)
-				log.Printf("curAngles is %v", curAngles)
 				removedAsteroidsInOrder = append(removedAsteroidsInOrder, curAngles[0])
-				//log.Printf("removed asteroids is %v", removedAsteroidsInOrder)
+				if len(curAngles) == 1 {
+					delete(angles, a)
+					continue
+				}
+				angles[a] = curAngles[1:] // remove first asteroid at this angle
+			}
+		}
+
+		// rest of the passes
+		for i := 0; i < start; i++ {
+			a := anglesIdx[i]
+			if curAngles, ok := angles[a]; ok {
+				removedAsteroidsInOrder = append(removedAsteroidsInOrder, curAngles[0])
 				if len(curAngles) == 1 {
 					delete(angles, a)
 					continue
