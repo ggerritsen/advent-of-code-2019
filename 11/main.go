@@ -8,14 +8,10 @@ import (
 	"sync"
 )
 
+const gridSize = 89
+const midPoint = 44
+
 func main() {
-run()
-}
-
-const gridSize = 75
-const midPoint = 37
-
-func run() {
 	// 0 is black, 1 is white
 	grid := make([][]int, gridSize)
 	for i := 0; i < gridSize; i++ {
@@ -46,8 +42,8 @@ func run() {
 
 	pc := newIntCodePC(opCodes)
 	loc := point{midPoint, midPoint}
-	//orientations := []string{"W", "N", "E", "S"}
-	orientation := 1
+	orientation := 1 // {"W", "N", "E", "S"}
+	grid[loc.x][loc.y] = 1
 
 	var wg sync.WaitGroup
 
@@ -97,8 +93,37 @@ func run() {
 
 	wg.Wait()
 
-	log.Printf("Done: %v", grid)
 	log.Printf("Painted: %d", len(painted))
+	log.Printf("Done:")
+	grid = transpose(grid)
+	for i := 0; i < len(grid); i++ {
+		s := ""
+		for j := 0; j < len(grid[i]); j++ {
+			if grid[i][j] == 0 {
+				s = s + " "
+			} else {
+				s = s + "|"
+			}
+		}
+		log.Printf(s)
+	}
+}
+
+func transpose(input [][]int) [][]int {
+	// prepare output matrix
+	output := make([][]int, len(input[0]))
+	for i := 0; i < len(output); i++ {
+		output[i] = make([]int, len(input))
+	}
+
+	// fill output matrix
+	for i := 0; i < len(input); i++ {
+		for j := 0; j < len(input[i]); j++ {
+			output[j][i] = input[i][j]
+		}
+	}
+
+	return output
 }
 
 type point struct {
