@@ -1,14 +1,36 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 )
 
 func main() {
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	f, err := os.Open(dir + "/12/input.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
 
+	var input []string
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		input = append(input, sc.Text())
+	}
+
+	m := parse(input)
+	for i := 0; i < 1000; i++ {
+		m = iterate(m)
+	}
+	log.Printf("total energy after 1000 steps: %d", calcEnergy(m))
 }
 
 func parse(s []string) []moon {
@@ -84,6 +106,24 @@ func iterate(moons []moon) []moon {
 	return moons
 }
 
+func calcEnergy(moons []moon) int {
+	abs := func(i int) int {
+		if i < 0 {
+			return -i
+		}
+		return i
+	}
+
+	total := 0
+	for _, moon := range moons {
+		pot := abs(moon.pos.x) + abs(moon.pos.y) + abs(moon.pos.z)
+		kin := abs(moon.vel.x) + abs(moon.vel.y) + abs(moon.vel.z)
+		total += pot * kin
+	}
+
+	return total
+}
+
 func newMoon(posX, posY, posZ, velX, velY, velZ int) moon {
 	return moon{
 		pos: position{x: posX, y: posY, z: posZ},
@@ -106,8 +146,4 @@ type position struct {
 
 type velocity struct {
 	x, y, z int
-}
-
-func run(m []*moon) {
-
 }
